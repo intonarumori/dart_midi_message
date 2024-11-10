@@ -1,4 +1,4 @@
-name: midi_message
+name: dart_midi_message
 description: A library for parsing and creating MIDI messages.
 version: 1.0.0
 

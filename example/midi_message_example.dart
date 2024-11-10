@@ -1,4 +1,4 @@
-import 'package:midi_message/midi_message.dart';
+import 'package:dart_midi_message/midi_message.dart';
 
 void main() {
   final message = MIDITimingClock();

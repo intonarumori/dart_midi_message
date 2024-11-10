@@ -1,4 +1,5 @@
 import 'midi_messages.dart';
+import 'midi_constants.dart';
 
 class MidiParser {
   static MIDIMessage parse(List<int> bytes) {
@@ -9,41 +10,41 @@ class MidiParser {
 
     if (status < 0xF0) {
       switch (status) {
-        case 0xB0:
+        case MidiConstants.CONTROL_CHANGE:
           return MIDIControlChangeMessage(
             channel: bytes[0] & 0x0F,
             controller: bytes[1],
             value: bytes[2],
           );
-        case 0xC0:
-          return MidiProgramChangeMessage(
+        case MidiConstants.PROGRAM_CHANGE:
+          return MIDIProgramChangeMessage(
             channel: bytes[0] & 0x0F,
             program: bytes[1],
           );
-        case 0x90:
-          return MidiNoteOnMessage(
+        case MidiConstants.NOTE_ON:
+          return MIDINoteOnMessage(
             channel: bytes[0] & 0x0F,
             note: bytes[1],
             velocity: bytes[2],
           );
-        case 0x80:
+        case MidiConstants.NOTE_OFF:
           return MIDINoteOffMessage(
             channel: bytes[0] & 0x0F,
             note: bytes[1],
             velocity: bytes[2],
           );
-        case 0xA0:
+        case MidiConstants.POLYPHONIC_KEY_PRESSURE:
           return MIDIPolyphonicKeyPressureMessage(
             channel: bytes[0] & 0x0F,
             note: bytes[1],
             pressure: bytes[2],
           );
-        case 0xD0:
+        case MidiConstants.CHANNEL_PRESSURE:
           return MIDIChannelPressureMessage(
             channel: bytes[0] & 0x0F,
             pressure: bytes[1],
           );
-        case 0xE0:
+        case MidiConstants.PITCH_BEND_CHANGE:
           return MIDIPitchBendChangeMessage(
             channel: bytes[0] & 0x0F,
             value: (bytes[2] << 7) + bytes[1],
@@ -53,38 +54,34 @@ class MidiParser {
       }
     } else {
       switch (status) {
-        case 0xF0:
-          if (bytes.last != 0xF7) {
+        case MidiConstants.SYSTEM_EXCLUSIVE_START:
+          if (bytes.last != MidiConstants.SYSTEM_EXCLUSIVE_END) {
             return MidiSysExMalformedMessage(data: bytes.sublist(1));
           } else {
-            return MIDISysExMessage(data: bytes.sublist(1));
+            return MIDISysExMessage(data: bytes.sublist(1, bytes.length - 1));
           }
-        case 0xF1:
+        case MidiConstants.TIME_CODE_QUARTER_FRAME:
           return MIDITimeCodeQuarterFrame(messageType: bytes[0] & 0x0F, value: bytes[1]);
-        case 0xF2:
+        case MidiConstants.SONG_POSITION_POINTER:
           return MIDISongPositionPointer(value: (bytes[2] << 7) + bytes[1]);
-        case 0xF3:
+        case MidiConstants.SONG_SELECT:
           return MIDISongSelect(songNumber: bytes[1]);
-        case 0xF4:
-          return MIDIUndefinedSystemCommonMessage(status: status);
-        case 0xF5:
-          return MIDIUndefinedSystemCommonMessage(status: status);
-        case 0xF6:
+        case MidiConstants.TUNE_REQUEST:
           return const MIDITuneRequest();
-        case 0xF8:
+        case MidiConstants.TIMING_CLOCK:
           return const MIDITimingClock();
-        case 0xFA:
+        case MidiConstants.START:
           return const MIDIStart();
-        case 0xFB:
+        case MidiConstants.CONTINUE:
           return const MIDIContinue();
-        case 0xFC:
+        case MidiConstants.STOP:
           return const MIDIStop();
-        case 0xFE:
+        case MidiConstants.ACTIVE_SENSING:
           return const MIDIActiveSensing();
-        case 0xFF:
+        case MidiConstants.SYSTEM_RESET:
           return const MIDISystemReset();
         default:
-          break;
+          return MIDIUndefinedSystemCommonMessage(status: status);
       }
     }
     return MIDIUnrecognizedMessage(data: bytes);
